@@ -1,6 +1,14 @@
+import * as React from 'react';
+
 import AddModalForm from '@/components/layout/AddModalForm';
 
-export default function Navbar({ product, setProduct }: any) {
+import { Product } from '@/schema/product';
+
+type AddModalFormProps = {
+  setProduct: React.Dispatch<React.SetStateAction<Product[]>>;
+};
+
+export default function Navbar({ setProduct }: AddModalFormProps) {
   return (
     <>
       <nav className='fixed start-0 top-0 z-20 w-full border-b border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-900'>
@@ -14,7 +22,7 @@ export default function Navbar({ product, setProduct }: any) {
             </span>
           </a>
           <div className='flex space-x-3 rtl:space-x-reverse md:order-2 md:space-x-0'>
-            <AddModalForm product={product} setProduct={setProduct} />
+            <AddModalForm setProduct={setProduct} />
             <button
               data-collapse-toggle='navbar-sticky'
               type='button'
