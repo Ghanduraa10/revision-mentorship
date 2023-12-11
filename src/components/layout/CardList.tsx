@@ -1,6 +1,7 @@
-import { Star } from 'lucide-react';
 import Link from 'next/link';
 import * as React from 'react';
+
+import StarIcon from '@/components/svgs/StarIcon';
 
 import { Product } from '@/schema/product';
 
@@ -22,11 +23,11 @@ export default function CardList({ products }: cardListProps) {
             </h5>
             <div className='mb-5 mt-2.5 flex items-center'>
               <div className='flex items-center space-x-1 rtl:space-x-reverse'>
-                <Star className='text-yellow-300' />
-                <Star className='text-yellow-300' />
-                <Star className='text-yellow-300' />
-                <Star className='text-yellow-300' />
-                <Star className='text-yellow-300' />
+                <StarIcon className='text-yellow-300' />
+                <StarIcon className='text-yellow-300' />
+                <StarIcon className='text-yellow-300' />
+                <StarIcon className='text-yellow-300' />
+                <StarIcon className='text-gray-300' />
               </div>
               <span className='ms-3 rounded bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:bg-blue-200 dark:text-blue-800'>
                 5.0
