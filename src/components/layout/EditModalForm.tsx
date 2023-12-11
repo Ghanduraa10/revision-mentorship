@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import { useRouter } from 'next/router';
 import * as React from 'react';
 
@@ -93,21 +93,7 @@ export function EditFormModal({ products }: cardListProps) {
                   data-modal-hide='default-modal'
                   onClick={closeModal}
                 >
-                  <svg
-                    className='h-3 w-3'
-                    aria-hidden='true'
-                    xmlns='http://www.w3.org/2000/svg'
-                    fill='none'
-                    viewBox='0 0 14 14'
-                  >
-                    <path
-                      stroke='currentColor'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth='2'
-                      d='m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6'
-                    />
-                  </svg>
+                  <X />
                   <span className='sr-only'>Close modal</span>
                 </button>
               </div>
