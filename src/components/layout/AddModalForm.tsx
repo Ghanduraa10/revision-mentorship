@@ -5,7 +5,6 @@ import { api } from '@/lib/api';
 
 import { Product } from '@/schema/product';
 
-api;
 type AddModalFormProps = {
   setProduct: React.Dispatch<React.SetStateAction<Product[]>>;
 };
