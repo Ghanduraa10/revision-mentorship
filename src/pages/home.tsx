@@ -11,7 +11,7 @@ export default function Home() {
     data: products,
     isLoading,
     error,
-  } = useQuery({ queryKey: ['todos'], queryFn: fetchProduct });
+  } = useQuery({ queryKey: ['data'], queryFn: fetchProduct });
 
   if (isLoading) {
     return (
@@ -27,7 +27,7 @@ export default function Home() {
 
   return (
     <>
-      <Navbar setProduct={products} />;
+      <Navbar />;
       <div className='mt-32'>
         <div role='status' className='flex justify-center'>
           {isLoading && <Loader2 />}
