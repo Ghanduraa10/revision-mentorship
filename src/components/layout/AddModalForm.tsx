@@ -1,21 +1,16 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, X } from 'lucide-react';
 import * as React from 'react';
 
-import { api } from '@/lib/api';
+import { createProduct } from '@/pages/api/product/productApi';
 
-import { Product } from '@/schema/product';
-
-type AddModalFormProps = {
-  setProduct: React.Dispatch<React.SetStateAction<Product[]>>;
-};
-
-const AddModalForm = ({ setProduct }: AddModalFormProps) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [isLoading, setLoading] = React.useState(false);
+const AddModalForm = () => {
   const [productName, setProductName] = React.useState('');
   const [productPrice, setProductPrice] = React.useState(0);
-  const [productImage, setProductImage] = React.useState('');
   const [productDescription, setProductDescription] = React.useState('');
+  const [isOpen, setIsOpen] = React.useState(false);
+  const queryClient = useQueryClient();
+  const [isLoading, setLoading] = React.useState(false);
 
   const openModal = () => {
     setIsOpen(true);
@@ -25,34 +20,24 @@ const AddModalForm = ({ setProduct }: AddModalFormProps) => {
     setIsOpen(false);
   };
 
-  const handleAddProduct = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (
-      productName === '' ||
-      productDescription === '' ||
-      productImage === '' ||
-      productPrice === 0
-    ) {
-      alert('Please fill in all fields');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const response = await api.post<{ data: Product }>('/api/product', {
-        title: productName,
-        price: productPrice,
-        image: productImage,
-        description: productDescription,
-      });
-      const createdProduct = response.data.data;
-      setProduct((prevState) => [...prevState, createdProduct]);
-    } catch (error) {
-      console.error('Error adding product:', error);
-    } finally {
+  const createProductMutation = useMutation<any, Error, any, unknown>({
+    mutationFn: createProduct,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.refetchQueries({ queryKey: ['data'] });
       setLoading(false);
-    }
+    },
+  });
+
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+    createProductMutation.mutate({
+      title: productName,
+      description: productDescription,
+      price: productPrice,
+    });
   };
 
   return (
@@ -67,7 +52,7 @@ const AddModalForm = ({ setProduct }: AddModalFormProps) => {
         <div>
           <div className='fixed inset-0 bg-black/50' onClick={closeModal}></div>
           <form
-            onSubmit={(_e) => handleAddProduct(_e)}
+            onSubmit={handleSubmit}
             className='fixed left-1/2 top-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-md bg-white p-8 text-gray-900 shadow '
           >
             <div className='flex items-center justify-between rounded-t border-b p-4 dark:border-gray-600 md:p-5'>
@@ -113,18 +98,7 @@ const AddModalForm = ({ setProduct }: AddModalFormProps) => {
               <input
                 type='number'
                 value={productPrice}
-                onChange={(e) => setProductPrice(Number(e.target.value))}
-                className='sm:text-md dark:bg-white-700 dark:text-dark block w-full rounded-lg border border-gray-300 bg-gray-50 p-4 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500'
-              />
-            </div>
-            <div className='mb-2 mt-5 px-5'>
-              <label className='dark:text-dark mb-2 block text-sm font-medium'>
-                Image
-              </label>
-              <input
-                type='text'
-                value={productImage}
-                onChange={(e) => setProductImage(e.target.value)}
+                onChange={(e) => setProductPrice(parseInt(e.target.value))}
                 className='sm:text-md dark:bg-white-700 dark:text-dark block w-full rounded-lg border border-gray-300 bg-gray-50 p-4 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500'
               />
             </div>
