@@ -1,46 +1,64 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useRouter } from 'next/router';
 import * as React from 'react';
 
-import { api } from '@/lib/api';
-
 import { EditFormModal } from '@/components/layout/EditModalForm';
 import StarIcon from '@/components/svgs/StarIcon';
 
-import { Product } from '@/schema/product';
+import {
+  deleteProduct,
+  fetchProductDetail,
+} from '@/pages/api/product/productApi';
 
 export default function ProductDetail() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+
   const productId = router.query.product as string;
 
-  const [products, setProducts] = React.useState<Product>();
-  const [isLoading, setLoading] = React.useState(false);
+  const {
+    data: products,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['data', productId],
+    queryFn: () => fetchProductDetail(+productId),
+  });
 
-  React.useEffect(() => {
-    fetchDataById(productId);
-  }, [productId]);
+  const deleteProductMutation = useMutation<any, Error, number, unknown>({
+    mutationFn: deleteProduct,
+    onSuccess: async () => {
+      try {
+        await queryClient.invalidateQueries({ queryKey: ['products'] });
+        await queryClient.refetchQueries({ queryKey: ['data'] });
+        router.push('/home');
+      } catch (error) {
+        console.error(error);
+      }
+    },
+  });
 
-  const fetchDataById = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
-      const response = await api.get(`/api/product/${id}`);
-      const result = response.data;
-      setProducts(result.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      setLoading(true);
-      await api.delete(`/api/product/${productId}`);
+      await deleteProductMutation.mutateAsync(id);
       router.push('/home');
     } catch (error) {
       console.error('Error deleting product:', error);
-    } finally {
-      setLoading(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <span>
+        <Loader2 />
+      </span>
+    );
+  }
+
+  if (error) {
+    return <span>Error: {error.message}</span>;
+  }
 
   return (
     <>
@@ -48,10 +66,10 @@ export default function ProductDetail() {
         <div className='w-full max-w-sm rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-800'>
           <div className='px-5 py-5 pb-5'>
             <h5 className='text-xl font-semibold tracking-tight text-gray-900 dark:text-white'>
-              {products?.title}
+              {products?.data.title}
             </h5>
             <p className='mb-3 font-normal text-gray-700 dark:text-gray-400'>
-              {products?.description}
+              {products?.data.description}
             </p>
             <div className='mb-5 mt-2.5 flex items-center'>
               <div className='flex items-center space-x-1 rtl:space-x-reverse'>
@@ -66,11 +84,11 @@ export default function ProductDetail() {
               </span>
             </div>
             <div className='flex items-center justify-end'>
-              <EditFormModal products={products} />
+              {products && <EditFormModal products={products} />}
               <button
                 type='button'
                 className='mb-2 me-2 flex items-center rounded-lg bg-red-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-red-800 focus:outline-none focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900'
-                onClick={handleDelete}
+                onClick={() => handleDelete(products?.data.id)}
                 disabled={isLoading}
               >
                 Delete
