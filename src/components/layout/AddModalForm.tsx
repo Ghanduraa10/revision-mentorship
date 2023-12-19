@@ -1,8 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, X } from 'lucide-react';
 import * as React from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { createProduct } from '@/pages/api/product/productApi';
+import { Product, productSchema } from '@/schema/product';
 
 const AddModalForm = () => {
   const [productName, setProductName] = React.useState('');
@@ -11,6 +14,15 @@ const AddModalForm = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const queryClient = useQueryClient();
   const [isLoading, setLoading] = React.useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<Product>({
+    resolver: zodResolver(productSchema),
+  });
 
   const openModal = () => {
     setIsOpen(true);
@@ -27,17 +39,21 @@ const AddModalForm = () => {
       queryClient.refetchQueries({ queryKey: ['data'] });
       setLoading(false);
     },
+    onError: (error) => {
+      console.error(error);
+    },
   });
 
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (
-    e: React.FormEvent<HTMLFormElement>
-  ) => {
-    e.preventDefault();
-    createProductMutation.mutate({
-      title: productName,
-      description: productDescription,
-      price: productPrice,
-    });
+  const handleAddProduct: SubmitHandler<Product> = (data) => {
+    try {
+      createProductMutation.mutate({
+        title: productName,
+        description: productDescription,
+        price: productPrice,
+      });
+    } catch (error) {
+      console.error('Error In Create Product', error);
+    }
   };
 
   return (
@@ -52,7 +68,7 @@ const AddModalForm = () => {
         <div>
           <div className='fixed inset-0 bg-black/50' onClick={closeModal}></div>
           <form
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit(handleAddProduct)}
             className='fixed left-1/2 top-1/2 w-full max-w-md -translate-x-1/2 -translate-y-1/2 rounded-md bg-white p-8 text-gray-900 shadow '
           >
             <div className='flex items-center justify-between rounded-t border-b p-4 dark:border-gray-600 md:p-5'>
@@ -74,11 +90,15 @@ const AddModalForm = () => {
                 Title
               </label>
               <input
+                {...register('title')}
                 type='text'
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
                 className='sm:text-md dark:bg-white-700 dark:text-dark block w-full rounded-lg border border-gray-300 bg-gray-50 p-4 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500'
               />
+              {errors.title && (
+                <p className='text-red-500'>{errors.title.message}</p>
+              )}
             </div>
             <div className='mb-2 mt-5 px-5'>
               <label className='dark:text-dark mb-2 block text-sm font-medium'>
@@ -96,11 +116,15 @@ const AddModalForm = () => {
                 Price
               </label>
               <input
+                {...register('price')}
                 type='number'
                 value={productPrice}
                 onChange={(e) => setProductPrice(parseInt(e.target.value))}
                 className='sm:text-md dark:bg-white-700 dark:text-dark block w-full rounded-lg border border-gray-300 bg-gray-50 p-4 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500'
               />
+              {errors.price && (
+                <p className='text-red-500'>{errors.price.message}</p>
+              )}
             </div>
             <div className='mb-2 mt-5 flex justify-end'>
               <button
