@@ -2,10 +2,6 @@ import * as React from 'react';
 
 import AddModalForm from '@/components/layout/AddModalForm';
 
-// type AddModalFormProps = {
-//   setProduct: React.Dispatch<React.SetStateAction<Product[]>>;
-// };
-
 export default function Navbar() {
   return (
     <>
