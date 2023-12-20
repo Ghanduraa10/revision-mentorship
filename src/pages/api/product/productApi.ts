@@ -38,6 +38,15 @@ export const createProduct = async(newProduct : newProductProps) : Promise<Axios
     return response
 }
 
+export const patchData = async ({product,id}: {product: any;id: number;}) : Promise<AxiosResponse<any> | undefined> => {
+  try {    
+    const newData = await api.patch(`/api/product/${id}`, product)
+    return newData
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 
 
 
