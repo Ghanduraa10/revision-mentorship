@@ -33,8 +33,12 @@ export const deleteProduct = async (id: number) : Promise<AxiosResponse<number, 
     return response;
 };
 
-export const createProduct = async(newProduct : newProductProps) : Promise<AxiosResponse<newProductProps, newProductProps>>  => {
-    const response = await api.post('/api/product', newProduct);
+export const createProduct = async(newProduct : Product) : Promise<AxiosResponse<Product, Product>>  => {
+    const response = await api.post('/api/product', newProduct , {
+      headers : {
+        'Content-Type': 'application/json',
+      }
+    });
     return response
 }
 
