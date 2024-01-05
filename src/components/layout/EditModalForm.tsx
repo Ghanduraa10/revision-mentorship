@@ -13,7 +13,7 @@ type cardListProps = {
 };
 
 export function EditFormModal({ products }: cardListProps) {
-  const { register, handleSubmit, setValue } = useForm({
+  const { register, handleSubmit, formState } = useForm({
     defaultValues: {
       title: products.data.title,
       description: products.data.description,
@@ -21,64 +21,29 @@ export function EditFormModal({ products }: cardListProps) {
     },
   });
 
+  const { isDirty } = formState;
+
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  const productId = router.query.product as string;
+
   const [isLoading, setLoading] = React.useState(false);
 
-  const [formData, setFormData] = React.useState({
-    title: '',
-    description: '',
-    price: 0,
-  });
-
-  React.useEffect(() => {
-    setFormData({
-      title: products.data.title,
-      description: products.data.description as string,
-      price: products.data.price as number,
-    });
-    setValue('title', products.data.title);
-    setValue('description', products.data.description);
-    setValue('price', products.data.price);
-  }, [products, setValue]);
-
   const editProductMutations = useMutation<any, Error, any, unknown>({
-    mutationFn: () =>
-      patchData({
-        product: {
-          title: formData.title,
-          description: formData.description,
-          price: formData.price as number,
-        },
-        id: products.data.id as number,
-      }),
-    onSuccess: ({ data }) => {
-      queryClient.setQueryData(['data', { id: data.id }], data);
-      queryClient.refetchQueries({ queryKey: ['data', null] });
+    mutationFn: patchData,
+    onMutate: async (newProduct: Product) => {
+      await queryClient.cancelQueries({ queryKey: ['data', productId] });
+      await queryClient.getQueryData(['data', productId]);
+      await queryClient.setQueryData(['data', { id: productId }], newProduct);
       setLoading(false);
       router.push('/home');
+      return { productId, newProduct };
     },
   });
 
-  const handleFormSubmit: SubmitHandler<any> = () => {
-    const updatedData = {
-      id: products.data.id,
-      product: {
-        title: formData.title,
-        description: formData.description,
-        price: formData.price as number,
-      },
-    };
-    editProductMutations.mutateAsync(updatedData);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  const handleFormSubmit: SubmitHandler<any> = (newProduct: Product) => {
+    editProductMutations.mutateAsync({ product: newProduct, id: productId });
   };
 
   return (
@@ -107,7 +72,6 @@ export function EditFormModal({ products }: cardListProps) {
                   {...register('title')}
                   type='text'
                   name='title'
-                  onChange={handleInputChange}
                   className='sm:text-md dark:bg-white-700 dark:text-dark block w-full rounded-lg border border-gray-300 bg-gray-50 p-4 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500'
                 />
               </div>
@@ -119,7 +83,6 @@ export function EditFormModal({ products }: cardListProps) {
                   {...register('description')}
                   type='text'
                   name='description'
-                  onChange={handleInputChange}
                   className='sm:text-md dark:bg-white-700 dark:text-dark block w-full rounded-lg border border-gray-300 bg-gray-50 p-4 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500'
                 />
               </div>
@@ -131,7 +94,6 @@ export function EditFormModal({ products }: cardListProps) {
                   {...register('price', { valueAsNumber: true })}
                   type='number'
                   name='price'
-                  onChange={handleInputChange}
                   className='sm:text-md dark:bg-white-700 dark:text-dark block w-full rounded-lg border border-gray-300 bg-gray-50 p-4 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:focus:border-blue-500 dark:focus:ring-blue-500'
                 />
               </div>
@@ -142,6 +104,7 @@ export function EditFormModal({ products }: cardListProps) {
                 <button
                   type='submit'
                   className='mb-2 me-2 flex items-center rounded-full bg-green-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-green-800 focus:outline-none focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800'
+                  disabled={!isDirty}
                 >
                   Edit Product
                   <div role='status'>{isLoading && <Loader2 />}</div>

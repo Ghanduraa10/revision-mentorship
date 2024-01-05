@@ -5,11 +5,6 @@ import { api } from "@/lib/api";
 
 import { Product } from '@/schema/product';
 
-type newProductProps = {
-  products: Product[];
-};
-
-
 export const fetchProduct = async () => {
   try {
     const response = await api.get('/api/product');
@@ -42,8 +37,8 @@ export const createProduct = async(newProduct : Product) : Promise<AxiosResponse
     return response
 }
 
-export const patchData = async ({product,id}: {product: any;id: number;}) : Promise<AxiosResponse<any> | undefined> => {
-  try {    
+export const patchData = async ({product,id}: {product: Product;id: number;}) : Promise<AxiosResponse<any> | undefined> => {
+  try {        
     const newData = await api.patch(`/api/product/${id}`, product)
     return newData
   } catch (error) {
