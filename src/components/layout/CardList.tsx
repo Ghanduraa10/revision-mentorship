@@ -1,17 +1,23 @@
 import Link from 'next/link';
 import * as React from 'react';
 
+import { cn } from '@/lib/utils';
+
 import StarIcon from '@/components/svgs/StarIcon';
 
 import { Product } from '@/schema/product';
 
 type cardListProps = {
   products: { data: Product[] };
-};
+} & React.ComponentPropsWithoutRef<'div'>;
 
-export default function CardList({ products }: cardListProps) {
+export default function CardList({
+  products,
+  className,
+  ...rest
+}: cardListProps) {
   return (
-    <div className='grid grid-cols-3 gap-4 px-10'>
+    <div className={cn(['grid grid-cols-3 gap-4 px-10', className])} {...rest}>
       {products &&
         products.data?.map((product: Product) => (
           <div
