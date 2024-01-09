@@ -13,6 +13,11 @@ type cardListProps = {
 };
 
 export function EditFormModal({ products }: cardListProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  const productId = router.query.product as string;
+
   const { register, handleSubmit, formState } = useForm({
     defaultValues: {
       title: products.data.title,
@@ -23,21 +28,15 @@ export function EditFormModal({ products }: cardListProps) {
 
   const { isDirty } = formState;
 
-  const router = useRouter();
-  const queryClient = useQueryClient();
-
-  const productId = router.query.product as string;
-
   const [isLoading, setLoading] = React.useState(false);
 
   const editProductMutations = useMutation<any, Error, any, unknown>({
     mutationFn: patchData,
     onMutate: async (newProduct: Product) => {
-      await queryClient.cancelQueries({ queryKey: ['data', productId] });
       await queryClient.getQueryData(['data', productId]);
       await queryClient.setQueryData(['data', { id: productId }], newProduct);
+      await queryClient.invalidateQueries({ queryKey: ['data'] });
       setLoading(false);
-      router.push('/home');
       return { productId, newProduct };
     },
   });
